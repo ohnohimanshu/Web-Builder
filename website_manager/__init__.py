@@ -1,0 +1,3 @@
+"""
+Website manager app initialization.
+"""

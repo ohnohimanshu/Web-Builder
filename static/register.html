@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            min-height: 100px;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            margin-bottom: 20px;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: black;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Website Builder API Tester</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'Register')">Register</button>
+        <button class="tablinks" onclick="openTab(event, 'Login')">Login</button>
+        <button class="tablinks" onclick="openTab(event, 'Profile')">Profile</button>
+    </div>
+    
+    <div id="Register" class="tabcontent" style="display:block;">
+        <h2>Register New User</h2>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="reg-email" placeholder="Enter email">
+        </div>
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="reg-name" placeholder="Enter name">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="reg-password" placeholder="Enter password">
+        </div>
+        <div class="form-group">
+            <label for="password-confirm">Confirm Password</label>
+            <input type="password" id="reg-password-confirm" placeholder="Confirm password">
+        </div>
+        <button onclick="registerUser()">Register</button>
+        <div class="response" id="register-response"></div>
+    </div>
+    
+    <div id="Login" class="tabcontent">
+        <h2>Login</h2>
+        <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="Enter email">
+        </div>
+        <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="Enter password">
+        </div>
+        <button onclick="login()">Login</button>
+        <div class="response" id="login-response"></div>
+    </div>
+    
+    <div id="Profile" class="tabcontent">
+        <h2>View Profile</h2>
+        <p>Requires authentication token from login</p>
+        <div class="form-group">
+            <label for="token">Token</label>
+            <input type="text" id="token" placeholder="Enter access token">
+        </div>
+        <button onclick="getProfile()">Get Profile</button>
+        <div class="response" id="profile-response"></div>
+    </div>
+
+    <script>
+        // Tab functionality
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        // Registration
+        function registerUser() {
+            const email = document.getElementById('reg-email').value;
+            const name = document.getElementById('reg-name').value;
+            const password = document.getElementById('reg-password').value;
+            const password_confirm = document.getElementById('reg-password-confirm').value;
+            
+            fetch('/api/auth/register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    name,
+                    password,
+                    password_confirm
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('register-response').innerText = JSON.stringify(data, null, 2);
+            })
+            .catch((error) => {
+                document.getElementById('register-response').innerText = 'Error: ' + error;
+            });
+        }
+
+        // Login
+        function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            fetch('/api/auth/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    password
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('login-response').innerText = JSON.stringify(data, null, 2);
+                // If successful, display the token and provide link to dashboard
+                if (data.access) {
+                    document.getElementById('token').value = data.access;
+                    
+                    // Store token in localStorage
+                    localStorage.setItem('access_token', data.access);
+                    
+                    // Add a link to the dashboard
+                    const loginResponse = document.getElementById('login-response');
+                    const dashboardLink = document.createElement('div');
+                    dashboardLink.innerHTML = '<br><a href="/home/dashboard/" class="dashboard-btn">Go to Dashboard</a>';
+                    dashboardLink.style.textAlign = 'center';
+                    loginResponse.appendChild(dashboardLink);
+                    
+                    // Add some styling for the button
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .dashboard-btn {
+                            display: inline-block;
+                            background-color: #4CAF50;
+                            color: white;
+                            padding: 10px 20px;
+                            text-decoration: none;
+                            border-radius: 4px;
+                            font-weight: bold;
+                        }
+                        .dashboard-btn:hover {
+                            background-color: #45a049;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            })
+            .catch((error) => {
+                document.getElementById('login-response').innerText = 'Error: ' + error;
+            });
+        }
+
+        // Get Profile
+        function getProfile() {
+            const token = document.getElementById('token').value;
+            
+            fetch('/api/auth/profile/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('profile-response').innerText = JSON.stringify(data, null, 2);
+            })
+            .catch((error) => {
+                document.getElementById('profile-response').innerText = 'Error: ' + error;
+            });
+        }
+    </script>
+</body>
+</html>

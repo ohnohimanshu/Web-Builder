@@ -1,0 +1,3 @@
+"""
+Website generator app initialization.
+"""
