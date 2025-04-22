@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load template_filters %}
+{% block title %}Create New Website{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg animate__animated animate__fadeInUp">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Create Your Website</h2>
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="id_name" class="form-label">Website Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                <input type="text" class="form-control" id="id_name" name="name" required>
+                                <div class="invalid-feedback">
+                                    Please provide a website name.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="id_description" class="form-label">Description</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-align-left"></i></span>
+                                <textarea class="form-control" id="id_description" name="description" rows="3" required></textarea>
+                                <div class="invalid-feedback">
+                                    Please provide a description.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Choose a Template Type</label>
+                            <div class="row g-3 mb-4">
+                                {% for template_type, display_name in template_types %}
+                                <div class="col-md-3">
+                                    <div class="card h-100 template-type-card" data-type="{{ template_type }}">
+                                        <div class="card-body text-center p-4">
+                                            <i class="{{ template_type|get_template_icon }} fa-3x text-primary mb-3"></i>
+                                            <h5 class="card-title">{{ display_name }}</h5>
+                                            <p class="card-text text-muted small">Perfect for {{ template_type|get_template_description }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="id_template" class="form-label">Available Templates</label>
+                                {% if templates %}
+                                <div class="row g-3 template-list">
+                                    {% for template in templates %}
+                                    <div class="col-md-6 template-item" data-type="{{ template.template_type }}">
+                                        <div class="card h-100 template-card">
+                                            <input type="radio" class="btn-check" name="template" id="template{{ template.id }}" value="{{ template.id }}" required>
+                                            <label class="card-body p-4" for="template{{ template.id }}">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <i class="{{ template.get_template_type_icon }} fa-2x text-primary me-2"></i>
+                                                    <h5 class="card-title mb-0">{{ template.name }}</h5>
+                                                    {% if template.is_premium %}
+                                                    <span class="badge bg-warning ms-2">Premium</span>
+                                                    {% endif %}
+                                                </div>
+                                                {% if template.preview_image %}
+                                                <img src="{{ template.preview_image.url }}" class="img-fluid rounded mb-3" alt="{{ template.name }}">
+                                                {% else %}
+                                                <div class="bg-light rounded mb-3 p-4 text-center">
+                                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                                </div>
+                                                {% endif %}
+                                                <p class="card-text text-muted small">{{ template.description }}</p>
+                                                {% if template.features %}
+                                                <div class="mt-3">
+                                                    <h6 class="small text-muted mb-2">Features:</h6>
+                                                    <ul class="list-unstyled small">
+                                                        {% for feature in template.get_features.items %}
+                                                        <li><i class="fas fa-check text-success me-2"></i>{{ feature.1 }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    No templates are available at the moment. Please contact the administrator.
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" {% if not templates %}disabled{% endif %}>
+                                <i class="fas fa-rocket me-2"></i>Create Website
+                            </button>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Home
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .template-type-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .template-type-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .template-type-card.active {
+        border-color: var(--primary-color);
+        background-color: rgba(74, 107, 255, 0.05);
+    }
+
+    .template-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .template-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-check:checked + .card-body {
+        border-color: var(--primary-color);
+        background-color: rgba(74, 107, 255, 0.05);
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(74, 107, 255, 0.25);
+    }
+
+    .input-group-text {
+        background-color: rgba(74, 107, 255, 0.1);
+        border-color: rgba(74, 107, 255, 0.2);
+        color: var(--primary-color);
+    }
+
+    .template-item {
+        display: none;
+    }
+
+    .template-item.active {
+        display: block;
+    }
+</style>
+
+<script>
+    // Form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms).forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+
+    // Template type filtering
+    document.addEventListener('DOMContentLoaded', function() {
+        const templateTypeCards = document.querySelectorAll('.template-type-card');
+        const templateItems = document.querySelectorAll('.template-item');
+
+        // Function to filter templates
+        function filterTemplates(type) {
+            templateItems.forEach(item => {
+                if (type === 'all' || item.dataset.type === type) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        // Add click event to template type cards
+        templateTypeCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const type = this.dataset.type;
+                
+                // Update active state
+                templateTypeCards.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+
+                // Filter templates
+                filterTemplates(type);
+            });
+        });
+
+        // Show all templates by default
+        filterTemplates('all');
+        
+        // Activate the first template type card by default
+        if (templateTypeCards.length > 0) {
+            templateTypeCards[0].classList.add('active');
+        }
+    });
+</script>
+{% endblock %}

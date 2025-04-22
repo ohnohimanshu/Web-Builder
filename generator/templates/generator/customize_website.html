@@ -1,0 +1,189 @@
+{% extends 'generator/base.html' %}
+{% block title %}Customize Your Website{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-image {
+        max-width: 200px;
+        max-height: 200px;
+        object-fit: contain;
+    }
+    .color-preview {
+        width: 30px;
+        height: 30px;
+        display: inline-block;
+        margin-left: 10px;
+        border: 1px solid #ddd;
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h2 class="h4 mb-0">Customize {{ website.name }}</h2>
+                <span class="badge bg-light text-primary">{{ website.template.name }}</span>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" class="customization-form">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-4">
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            
+                            {# Handle different field types #}
+                            {% if field.field.widget.input_type == 'color' %}
+                                <div class="d-flex align-items-center">
+                                    {{ field }}
+                                    <div class="color-preview" style="background-color: {{ field.value }}"></div>
+                                </div>
+                            {% elif field.field.widget.input_type == 'file' %}
+                                {# Show existing image if available #}
+                                {% if field.value %}
+                                    <div class="mb-2">
+                                        <img src="{{ MEDIA_URL }}{{ field.value }}" class="preview-image" alt="Current image">
+                                    </div>
+                                {% endif %}
+                                {{ field }}
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% if field.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'create_website' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Preview Website <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# AI Content Generation Modal #}
+<div class="modal fade" id="aiContentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Generate AI Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="aiContentForm">
+                    <div class="mb-3">
+                        <label class="form-label">Content Type</label>
+                        <select class="form-select" name="content_type" required>
+                            <option value="heading">Heading</option>
+                            <option value="paragraph">Paragraph</option>
+                            <option value="call_to_action">Call to Action</option>
+                            <option value="feature_list">Feature List</option>
+                            <option value="testimonial">Testimonial</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tone</label>
+                        <select class="form-select" name="tone" required>
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="enthusiastic">Enthusiastic</option>
+                            <option value="formal">Formal</option>
+                            <option value="friendly">Friendly</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="generateContent">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle color picker preview
+    document.querySelectorAll('input[type="color"]').forEach(input => {
+        input.addEventListener('input', function() {
+            this.nextElementSibling.style.backgroundColor = this.value;
+        });
+    });
+
+    // Handle file input preview
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                const preview = this.previousElementSibling?.querySelector('.preview-image');
+                
+                reader.onload = function(e) {
+                    if (preview) {
+                        preview.src = e.target.result;
+                    }
+                }
+                
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
+
+    // AI Content Generation
+    document.getElementById('generateContent').addEventListener('click', function() {
+        const form = document.getElementById('aiContentForm');
+        const formData = new FormData(form);
+
+        fetch('{% url "generate_ai_content" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Find the appropriate textarea and insert the content
+                const activeTextarea = document.activeElement;
+                if (activeTextarea && activeTextarea.tagName === 'TEXTAREA') {
+                    const cursorPos = activeTextarea.selectionStart;
+                    const textBefore = activeTextarea.value.substring(0, cursorPos);
+                    const textAfter = activeTextarea.value.substring(cursorPos);
+                    activeTextarea.value = textBefore + data.content + textAfter;
+                }
+                
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('aiContentModal'));
+                modal.hide();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
+{% endblock %}

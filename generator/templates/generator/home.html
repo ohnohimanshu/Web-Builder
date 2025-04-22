@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row align-items-center">
+        <div class="col-lg-6 animate__animated animate__fadeInLeft">
+            <h1 class="display-4 fw-bold mb-4">Create Your Perfect Website</h1>
+            <p class="lead mb-4">Build beautiful, responsive websites in minutes with our easy-to-use website generator. No coding required!</p>
+            <div class="d-flex gap-3">
+                <a href="{% url 'create_website' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Get Started
+                </a>
+                <a href="#features" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-info-circle me-2"></i>Learn More
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6 animate__animated animate__fadeInRight">
+            <img src="https://via.placeholder.com/600x400" alt="Website Preview" class="img-fluid rounded-3 shadow-lg">
+        </div>
+    </div>
+
+    <div id="features" class="row mt-5 pt-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="display-5 fw-bold">Why Choose WebGen?</h2>
+            <p class="lead text-muted">Powerful features to help you create stunning websites</p>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-magic fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h4">Easy to Use</h3>
+                    <p class="text-muted">Create professional websites with our intuitive drag-and-drop interface.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-mobile-alt fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h4">Responsive Design</h3>
+                    <p class="text-muted">Your website will look great on all devices, from mobile to desktop.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.6s">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-palette fa-3x text-primary"></i>
+                    </div>
+                    <h3 class="h4">Customizable</h3>
+                    <p class="text-muted">Choose from hundreds of templates and customize them to match your brand.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 pt-5">
+        <div class="col-12 text-center">
+            <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
+            <a href="{% url 'create_website' %}" class="btn btn-primary btn-lg px-5">
+                <i class="fas fa-rocket me-2"></i>Create Your Website Now
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(74, 107, 255, 0.1);
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover .feature-icon {
+        transform: scale(1.1);
+    }
+
+    .btn-lg {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
